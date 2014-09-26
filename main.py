@@ -1,5 +1,7 @@
 import numpy as np
+from math import sqrt
 from scipy.sparse import csr_matrix
+from random import choice
 
 # maps movie_ids to movie names
 movies = {}
@@ -20,18 +22,53 @@ with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-train-v1_0.txt" , "r
         rating = rating.rstrip('\n')
 
         if user_id in user_vectors:
-            user_vectors[ user_id ].append( (movie_id, rating) )
+            user_vectors[ user_id ][ movie_id ] = float( rating )
         else:
-            user_vectors[ user_id ] = [ (movie_id, rating) ]
+            user_vectors[ user_id ] = {}
+            user_vectors[ user_id ][ movie_id ] = float( rating )
 
-#print user_vectors
+def euclidean_distance( user_ratings, user_a, user_b ):
+    if user_a == user_b:
+        print "*** ERROR! User A and User B are identical"
+        return -1
+
+    intersection_set = {}
+
+    for item in user_ratings[ user_a ]:
+        if item in user_ratings[ user_b ]:
+            intersection_set[item] = 1
+
+    # if they have no rating in common
+    if len(intersection_set)==0: 
+        return 0
+            
+    rating_score = []
+    for item in user_ratings[ user_a ]:
+        if item in user_ratings[ user_b ]:
+            rating_score.append( pow( user_ratings[ user_a ][ item ] - user_ratings[ user_b ][ item ],2 ) )
+
+    return 1 / ( 1 + sum( rating_score ) )
+
+def pearson_correlation_score():
+    pass
 
 print "* Movies:\t",len(movies)
 print "* Users:\t",len(user_vectors)
 
-A = csr_matrix([[1, 2, 0], [0, 0, 3], [4, 0, 5]])
+user_id_match = {}
 
-print A
+"""
+for elem in user_vectors.items():
+    print elem
+    print
+"""
+users = user_vectors.keys()
+user_a = choice( users )
+user_b = choice( users )
+
+print euclidean_distance( user_vectors, user_a, user_b )
+
+#UserMatrix = csr_matrix([[1, 2, 0], [0, 0, 3], [4, 0, 5]])
 
 """
 with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-test-v1_0.txt" , "r" ) as f:
@@ -40,6 +77,5 @@ with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-test-v1_0.txt" , "r"
         user_id, movie_id, _, rating = line.split("\t")
         #print user_id, movie_id, rating
 """
-
 
 ### Item-based similiarty measures http://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/itembased.html
