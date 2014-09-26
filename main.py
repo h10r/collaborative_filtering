@@ -32,22 +32,17 @@ def euclidean_distance( user_ratings, user_a, user_b ):
         print "*** ERROR! User A and User B are identical"
         return -1
 
-    intersection_set = {}
+    len_of_intersection_set = 0
 
-    for item in user_ratings[ user_a ]:
-        if item in user_ratings[ user_b ]:
-            intersection_set[item] = 1
-
-    # if they have no rating in common
-    if len(intersection_set)==0: 
-        return 0
-            
     rating_score = []
     for item in user_ratings[ user_a ]:
         if item in user_ratings[ user_b ]:
             rating_score.append( pow( user_ratings[ user_a ][ item ] - user_ratings[ user_b ][ item ],2 ) )
-
-    return 1 / ( 1 + sum( rating_score ) )
+            len_of_intersection_set += 1
+    if len_of_intersection_set > 0:
+        return 1 / ( 1 + sum( rating_score ) )
+    else:
+        return 0
 
 def pearson_correlation_score():
     pass
