@@ -4,6 +4,12 @@ from scipy.sparse import csr_matrix
 from random import choice
 
 ##################################################################################################
+#
+# Collaborative Filtering implementation in Python
+#
+# Based on Toby Segaran. 2007. Programming Collective Intelligence. O'Reilly. 
+#
+##################################################################################################
 # Load files
 ##################################################################################################
 
@@ -96,6 +102,10 @@ def pearson_correlation_score( user_ratings, user_a, user_b ):
     else:
         return 0
 
+##################################################################################################
+# CF implementation
+##################################################################################################
+
 def similarity_score( user_ratings, user_a, user_b ):
     return pearson_correlation_score( user_ratings, user_a, user_b )
 
@@ -163,7 +173,7 @@ print "*** Movies:\t",len(movies)
 print "*** Users:\t",len(user_ratings)
 print "*" * 100
 
-def run():
+def test_recommendations():
     """
     for elem in user_ratings.items():
         print elem
@@ -182,8 +192,6 @@ def run():
     #print get_similiar_users_for( user_ratings, user_a )
     print get_recommendations_by_weighted_average( user_ratings, user_a )
 
-#run()
-
-movie_ratings = get_movie_ratings_from_user_ratings( user_ratings )
+test_recommendations()
 
 ### Item-based similiarty measures http://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/itembased.html
