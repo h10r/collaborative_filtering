@@ -4,6 +4,14 @@ from scipy.sparse import csr_matrix
 from random import choice
 
 ##################################################################################################
+#
+# Collaborative Filtering implementation in Python
+#
+# Based on Toby Segaran. 2007. Programming Collective Intelligence. O'Reilly. 
+#
+##################################################################################################
+
+##################################################################################################
 # Load files
 ##################################################################################################
 
@@ -33,8 +41,24 @@ with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-train-v1_0.txt" , "r
             user_ratings[ user_id ] = {}
             user_ratings[ user_id ][ movie_id ] = float( rating )
 
+def get_movie_ratings_from_user_ratings( user_ratings ):
+    movie_ratings = {}
+
+    for user in user_ratings:
+        for movie in user_ratings[user]:
+            movie_ratings.setdefault(movie,{})
+            movie_ratings[ movie ][ user ] = user_ratings[ user ][ movie ]
+    
+    return movie_ratings
+
+movie_ratings = get_movie_ratings_from_user_ratings( user_ratings )
+
 ##################################################################################################
 # Similiarity function
+##################################################################################################
+#
+# Item-based similiarty measures http://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/itembased.html
+#
 ##################################################################################################
 
 def euclidean_distance( user_ratings, user_a, user_b ):
@@ -148,42 +172,40 @@ def get_recommendations_by_weighted_average( user_ratings, this_user, N = 10 ):
         else:
             print "UNKNOWN MOVIE ID", movie_id
 
-def get_movie_ratings_from_user_ratings( user_ratings ):
-    movie_ratings = {}
-
-    for user in user_ratings:
-        for movie in user_ratings[user]:
-            movie_ratings.setdefault(movie,{})
-            movie_ratings[ movie ][ user ] = user_ratings[ user ][ movie ]
-    
-    return movie_ratings
-
 print "*" * 100
 print "*** Movies:\t",len(movies)
 print "*** Users:\t",len(user_ratings)
 print "*" * 100
 
-def run():
-    """
-    for elem in user_ratings.items():
-        print elem
-        print
-    """
+def test_user_recommendation():
     users = user_ratings.keys()
     user_a = choice( users )
     user_b = choice( users )
 
     #print "euclidian",euclidean_distance( user_ratings, user_a, user_b )
     #print "pearson", pearson_correlation_score( user_ratings, user_a, user_b )
-    print "score", similarity_score( user_ratings, user_a, user_b )
+    print "Similiarty Score", similarity_score( user_ratings, user_a, user_b )
 
     print "Recommendation for:",user_a,"{",user_ratings[ user_a ],"}"
 
     #print get_similiar_users_for( user_ratings, user_a )
     print get_recommendations_by_weighted_average( user_ratings, user_a )
 
+def test_movie_recommendation():
+    
+    movies = movie_ratings.keys()
+
+    movie_a = choice( movies )
+    movie_b = choice( movies )
+
+    #print "euclidian",euclidean_distance( user_ratings, user_a, user_b )
+    #print "pearson", pearson_correlation_score( user_ratings, user_a, user_b )
+    print "Similiarty Score", similarity_score( movie_ratings, movie_a, movie_b )
+
+    #print get_similiar_users_for( movie_ratings, movie_a )
+    print get_recommendations_by_weighted_average( movie_ratings, movie_a )
+
 #run()
 
-movie_ratings = get_movie_ratings_from_user_ratings( user_ratings )
-
-### Item-based similiarty measures http://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/itembased.html
+if __name__ == "__main__":
+    test_movie_recommendation()
