@@ -3,6 +3,10 @@ from math import sqrt
 from scipy.sparse import csr_matrix
 from random import choice
 
+##################################################################################################
+# Load files
+##################################################################################################
+
 # maps movie_ids to movie names
 movies = {}
 
@@ -12,7 +16,7 @@ with open( "../Webscope_R4/ydata-ymovies-mapping-to-eachmovie-v1_0.txt" , "r" ) 
         movie_id, movie_name, _ = line.split("\t")
         movies[ movie_id ] = movie_name
 
-user_vectors = {}
+user_ratings = {}
 
 with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-train-v1_0.txt" , "r") as f:
     the_file = f.readlines()
@@ -21,11 +25,15 @@ with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-train-v1_0.txt" , "r
 
         rating = rating.rstrip('\n')
 
-        if user_id in user_vectors:
-            user_vectors[ user_id ][ movie_id ] = float( rating )
+        if user_id in user_ratings:
+            user_ratings[ user_id ][ movie_id ] = float( rating )
         else:
-            user_vectors[ user_id ] = {}
-            user_vectors[ user_id ][ movie_id ] = float( rating )
+            user_ratings[ user_id ] = {}
+            user_ratings[ user_id ][ movie_id ] = float( rating )
+
+##################################################################################################
+# Similiarity function
+##################################################################################################
 
 def euclidean_distance( user_ratings, user_a, user_b ):
     if user_a == user_b:
@@ -117,6 +125,7 @@ def get_recommendations_by_weighted_average( user_ratings, this_user, N = 10 ):
 
                 # ignore movies the user already saw / rated
                 if not item in user_ratings[ this_user ]:
+                    # make sure you can just add to the value
                     similarity.setdefault(item,0)
                     similarity_times_ranking.setdefault(item,0)
 
@@ -137,37 +146,42 @@ def get_recommendations_by_weighted_average( user_ratings, this_user, N = 10 ):
         else:
             print "UNKNOWN MOVIE ID", movie_id
 
-print "* Movies:\t",len(movies)
-print "* Users:\t",len(user_vectors)
+def get_movie_ratings_from_user_ratings( user_ratings ):
+    movie_ratings = {}
 
-user_id_match = {}
+    for user in user_ratings:
+        for movie in user_ratings[user]:
+            movie_ratings.setdefault(movie,{})
+            movie_ratings[ movie ][ user ] = user_ratings[ user ][ movie ]
+    
+    return movie_ratings
 
-"""
-for elem in user_vectors.items():
-    print elem
-    print
-"""
-users = user_vectors.keys()
-user_a = choice( users )
-user_b = choice( users )
+print "*" * 100
+print "*** Movies:\t",len(movies)
+print "*** Users:\t",len(user_ratings)
+print "*" * 100
 
-#print "euclidian",euclidean_distance( user_vectors, user_a, user_b )
-#print "pearson", pearson_correlation_score( user_vectors, user_a, user_b )
-print "score", similarity_score( user_vectors, user_a, user_b )
+def run():
+    """
+    for elem in user_ratings.items():
+        print elem
+        print
+    """
+    users = user_ratings.keys()
+    user_a = choice( users )
+    user_b = choice( users )
 
-print "Recommendation for:",user_a,"{",user_vectors[ user_a ],"}"
+    #print "euclidian",euclidean_distance( user_ratings, user_a, user_b )
+    #print "pearson", pearson_correlation_score( user_ratings, user_a, user_b )
+    print "score", similarity_score( user_ratings, user_a, user_b )
 
-#print get_similiar_users_for( user_vectors, user_a )
-print get_recommendations_by_weighted_average( user_vectors, user_a )
+    print "Recommendation for:",user_a,"{",user_ratings[ user_a ],"}"
 
-#UserMatrix = csr_matrix([[1, 2, 0], [0, 0, 3], [4, 0, 5]])
+    #print get_similiar_users_for( user_ratings, user_a )
+    print get_recommendations_by_weighted_average( user_ratings, user_a )
 
-"""
-with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-test-v1_0.txt" , "r" ) as f:
-    the_file = f.readlines()
-    for line in the_file:
-        user_id, movie_id, _, rating = line.split("\t")
-        #print user_id, movie_id, rating
-"""
+#run()
+
+movie_ratings = get_movie_ratings_from_user_ratings( user_ratings )
 
 ### Item-based similiarty measures http://www.cs.carleton.edu/cs_comps/0607/recommend/recommender/itembased.html
