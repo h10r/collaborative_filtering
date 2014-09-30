@@ -10,6 +10,7 @@ from random import choice
 # maps movie_ids to movie names
 movies = {}
 
+# init movie names
 with open( "../Webscope_R4/ydata-ymovies-mapping-to-eachmovie-v1_0.txt" , "r" ) as f:
     the_file = f.readlines()
     for line in the_file:
@@ -18,6 +19,7 @@ with open( "../Webscope_R4/ydata-ymovies-mapping-to-eachmovie-v1_0.txt" , "r" ) 
 
 user_ratings = {}
 
+# init user ratings
 with open( "../Webscope_R4/ydata-ymovies-user-movie-ratings-train-v1_0.txt" , "r") as f:
     the_file = f.readlines()
     for line in the_file:
