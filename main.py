@@ -86,7 +86,7 @@ def pearson_correlation_score( user_ratings, user_a, user_b ):
     else:
         return 0
 
-def simliarity_score( user_ratings, user_a, user_b ):
+def similarity_score( user_ratings, user_a, user_b ):
     return pearson_correlation_score( user_ratings, user_a, user_b )
 
 def get_similiar_users_for( user_ratings, this_user, output_matches=10 ):
@@ -95,13 +95,47 @@ def get_similiar_users_for( user_ratings, this_user, output_matches=10 ):
     for other_user in user_ratings.keys():
         if this_user == other_user:
             continue
-        user_similiarities.append( ( simliarity_score( user_ratings, this_user, other_user ), other_user ) )
+        user_similiarities.append( ( similarity_score( user_ratings, this_user, other_user ), other_user ) )
 
     user_similiarities.sort()
     # get top five
     best_matches = user_similiarities[len(user_similiarities)-1-output_matches:len(user_similiarities)-1]
 
     return best_matches
+
+def get_recommendations_by_weighted_average( user_ratings, this_user, N = 10 ):
+    similarity_times_ranking = {}
+    similarity = {}
+
+    for other_user in user_ratings.keys():
+        if this_user == other_user:
+            continue
+        sim_score = similarity_score( user_ratings, this_user, other_user )
+
+        if sim_score > 0.0:
+            for item in user_ratings[ other_user ]:
+
+                # ignore movies the user already saw / rated
+                if not item in user_ratings[ this_user ]:
+                    similarity.setdefault(item,0)
+                    similarity_times_ranking.setdefault(item,0)
+
+                    similarity[ item ] += sim_score
+                    similarity_times_ranking[ item ] += user_ratings[ other_user ][ item ] * sim_score
+
+    rankings = []
+    for item in similarity_times_ranking.keys():
+        rankings.append( ( similarity_times_ranking[ item ] / similarity[ item ], item ) )
+
+    rankings.sort()
+
+    for r in rankings[ len(rankings)-N:len(rankings) ]:
+        score, movie_id = r
+
+        if movie_id in movies:
+            print movies[ movie_id ]
+        else:
+            print "UNKNOWN MOVIE ID", movie_id
 
 print "* Movies:\t",len(movies)
 print "* Users:\t",len(user_vectors)
@@ -119,9 +153,12 @@ user_b = choice( users )
 
 #print "euclidian",euclidean_distance( user_vectors, user_a, user_b )
 #print "pearson", pearson_correlation_score( user_vectors, user_a, user_b )
-print "score", simliarity_score( user_vectors, user_a, user_b )
+print "score", similarity_score( user_vectors, user_a, user_b )
 
-print get_similiar_users_for( user_vectors, user_a )
+print "Recommendation for:",user_a,"{",user_vectors[ user_a ],"}"
+
+#print get_similiar_users_for( user_vectors, user_a )
+print get_recommendations_by_weighted_average( user_vectors, user_a )
 
 #UserMatrix = csr_matrix([[1, 2, 0], [0, 0, 3], [4, 0, 5]])
 
